@@ -1,0 +1,23 @@
+{
+  "name": "planetariumwebeditor",
+  "version": "1.0.0",
+  "description": "Web editor to create dynamic full domes",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RubenVanErp/PlanetariumWebEditor.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/RubenVanErp/PlanetariumWebEditor/issues"
+  },
+  "homepage": "https://github.com/RubenVanErp/PlanetariumWebEditor#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
