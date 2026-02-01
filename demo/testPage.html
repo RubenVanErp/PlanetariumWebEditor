@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandbox</title>
+    <link rel="stylesheet" href="testStyle.css">
+    <link rel="icon" href="assets/favicon.ico">
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    
+    <div id="controls">
+        <label>Theta: <input type="range" id="thetaSlider" min="0" max="6.28" step="0.01" value="0" /></label>
+        <label>Phi: <input type="range" id="phiSlider" min="-1.570796" max="1.570796" step="0.01" value="0" /></label>
+        <label>Width: <input type="range" id="widthSlider" min="0.01" max="2" step="0.01" value="0.1" /></label>
+        <label>Height: <input type="range" id="heightSlider" min="0.01" max="2" step="0.01" value="0.1" /></label>
+        <label>Alpha: <input type="range" id="alphaSlider" min="0" max="6.2831" step="0.01" value="0" /></label>
+    </div>
+
+    <div id = "circle"></div>
+
+    
+    <script src="scriptSandbox.js"></script>
+</body>
+</html>
