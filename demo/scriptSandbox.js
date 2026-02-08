@@ -121,6 +121,20 @@ class ImageTransformer {
                 );
                 return rotationMatrix * v;
             }
+            
+            
+            vec2 fullDome(vec2 uv) {
+                vec2 adjusted = vec2(uv.x - 0.5, uv.y - 0.5);
+                vec2 scaled = adjusted * uPhi;
+                vec2 rotated = rotateVec2d(scaled, uAlpha+uTheta);
+                uv = rotated;
+
+                if (adjusted.x*adjusted.x + adjusted.y*adjusted.y <= 0.5*0.5) {
+                    return vec2(uv.x + 0.5, uv.y + 0.5);
+                }
+                return vec2(-1,-1);
+            }
+
 
 
             // Cylindrical projection parameters (uTheta = theta of center, uPhi = z of center. uHeight in z, uWidth in theta)
@@ -201,7 +215,7 @@ class ImageTransformer {
 
 
 
-            vec2 sphericalTangentAlwaysBottonDown(vec2 uv) {
+            vec2 sphericalTangentBottonDown(vec2 uv) {
                 vec3 n = sphToCart(vec3(1,uPhi,uTheta));
                 vec3 s = normalize(cross(sphToCart(vec3(1.0, 0.001, uTheta)), n));
                 vec3 t = cross(n, s);
@@ -238,7 +252,13 @@ class ImageTransformer {
 
 
             void main() {
-                vec2 uv = sphericalTangent(vTexCoord);
+                // options for projections are:
+                // sphericalTangent
+                // sphericalTangentBottonDown
+                // panoramic
+                // cylindrical
+                // fullDome
+                vec2 uv = fullDome(vTexCoord);
 
                 if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
                     gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
@@ -448,7 +468,153 @@ class ImageTransformer {
 
 
 const transformer = new ImageTransformer('canvas');
-transformer.initWithMedia('assets/calibrationVideo.mp4');
+
+// Create folder input
+const folderInput = document.createElement('input');
+folderInput.type = 'file';
+folderInput.webkitdirectory = true;
+folderInput.directory = true;
+folderInput.multiple = true;
+folderInput.style.position = 'fixed';
+folderInput.style.top = '10px';
+folderInput.style.left = '10px';
+folderInput.style.zIndex = '1000';
+document.body.appendChild(folderInput);
+
+// Create file list container
+const fileListContainer = document.createElement('div');
+fileListContainer.style.position = 'fixed';
+fileListContainer.style.top = '50px';
+fileListContainer.style.left = '10px';
+fileListContainer.style.zIndex = '1000';
+fileListContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+fileListContainer.style.color = 'white';
+fileListContainer.style.padding = '10px';
+fileListContainer.style.borderRadius = '5px';
+fileListContainer.style.maxHeight = '300px';
+fileListContainer.style.overflowY = 'auto';
+fileListContainer.style.display = 'none';
+fileListContainer.style.maxWidth = '300px';
+document.body.appendChild(fileListContainer);
+
+// Create play button
+const playButton = document.createElement('button');
+playButton.textContent = 'Play Video';
+playButton.style.position = 'fixed';
+playButton.style.top = '10px';
+playButton.style.left = '200px';
+playButton.style.zIndex = '1000';
+playButton.style.display = 'none';
+document.body.appendChild(playButton);
+
+let currentFiles = [];
+let currentFileIndex = -1;
+
+async function loadMediaFile(file) {
+    console.log('Loading file:', file.name, 'Size:', (file.size / 1024 / 1024).toFixed(2) + 'MB');
+    const url = URL.createObjectURL(file);
+    
+    const isVideo = file.type.startsWith('video/');
+    const isImage = file.type.startsWith('image/');
+    
+    if (isVideo) {
+        const video = document.createElement('video');
+        video.src = url;
+        video.loop = true;
+        video.muted = true;
+        video.playsInline = true;
+        await transformer.initWithVideo(video);
+        
+        playButton.style.display = 'block';
+        playButton.onclick = () => {
+            transformer.video.play()
+                .then(() => console.log('Video playing'))
+                .catch(err => console.error('Play failed:', err));
+        };
+    } else if (isImage) {
+        const img = new Image();
+        img.src = url;
+        await transformer.initWithImage(img);
+        playButton.style.display = 'none';
+    }
+}
+
+function updateFileList() {
+    fileListContainer.innerHTML = '';
+    
+    if (currentFiles.length === 0) {
+        fileListContainer.style.display = 'none';
+        return;
+    }
+    
+    fileListContainer.style.display = 'block';
+    
+    const title = document.createElement('div');
+    title.textContent = `Found ${currentFiles.length} media file(s):`;
+    title.style.fontWeight = 'bold';
+    title.style.marginBottom = '10px';
+    fileListContainer.appendChild(title);
+    
+    currentFiles.forEach((file, index) => {
+        const fileItem = document.createElement('div');
+        fileItem.style.padding = '5px';
+        fileItem.style.cursor = 'pointer';
+        fileItem.style.borderRadius = '3px';
+        fileItem.style.marginBottom = '3px';
+        fileItem.style.backgroundColor = index === currentFileIndex ? 'rgba(100, 150, 255, 0.5)' : 'transparent';
+        
+        const fileName = document.createElement('div');
+        fileName.textContent = file.name;
+        fileName.style.fontSize = '12px';
+        fileItem.appendChild(fileName);
+        
+        const fileSize = document.createElement('div');
+        fileSize.textContent = `Size: ${(file.size / 1024 / 1024).toFixed(2)} MB`;
+        fileSize.style.fontSize = '10px';
+        fileSize.style.color = '#aaa';
+        fileItem.appendChild(fileSize);
+        
+        fileItem.addEventListener('mouseenter', () => {
+            if (index !== currentFileIndex) {
+                fileItem.style.backgroundColor = 'rgba(100, 100, 100, 0.5)';
+            }
+        });
+        
+        fileItem.addEventListener('mouseleave', () => {
+            if (index !== currentFileIndex) {
+                fileItem.style.backgroundColor = 'transparent';
+            }
+        });
+        
+        fileItem.addEventListener('click', async () => {
+            currentFileIndex = index;
+            await loadMediaFile(file);
+            updateFileList();
+        });
+        
+        fileListContainer.appendChild(fileItem);
+    });
+}
+
+folderInput.addEventListener('change', async (e) => {
+    const files = Array.from(e.target.files);
+    
+    // Filter for video and image files
+    currentFiles = files.filter(file => 
+        file.type.startsWith('video/') || file.type.startsWith('image/')
+    );
+    
+    console.log(`Found ${currentFiles.length} media files in folder`);
+    
+    if (currentFiles.length > 0) {
+        // Load the first file by default
+        currentFileIndex = 0;
+        await loadMediaFile(currentFiles[0]);
+        updateFileList();
+    } else {
+        alert('No video or image files found in the selected folder');
+    }
+});
 
 let last = performance.now();
 let frames = 0;
