@@ -1,14 +1,14 @@
-import { Renderer } from './renderer.js';
-import { Editor } from './masters/editor/editor.js';
-import { Presenter } from './presenter.js';
-import { Visualiser } from './visualiser.js';
+import { Editor } from './editor/editor.js';
+import { Presentation } from './presentation/presentation.js';
+import { Presenter } from './presenter/presenter.js';
+import { Visualiser } from './visualiser/visualiser.js';
 
-class Master {
+export class Master {
     constructor() {
-        this.renderer = new Renderer();
-        this.visualiser = new Visualiser();
-        this.editor = new Editor();
-        this.presenter = new Presenter();
-        console.log("master Initialised")
+        this.visualiser = new Visualiser(this);        
+        this.presenter = new Presenter(this);
+        this.editor = new Editor(this);
+        this.presentation = new Presentation("default", this);
+        this.editor.setCurrentPresentation(this.presentation)
     }
 }

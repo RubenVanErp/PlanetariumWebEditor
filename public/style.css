@@ -26,6 +26,7 @@
     font-family: 'Omnes', sans-serif;
 }
 
+
 body {
     margin: 0;
     padding: 0;
@@ -105,6 +106,7 @@ body {
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
+    cursor: pointer;
 }
 
 #sideBar{ 
@@ -154,7 +156,7 @@ body {
     top: 10vh;
     width: 47vw;
     height: 80vh;
-    border-radius: 3vw;
+    border-radius: 2vw;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -209,7 +211,7 @@ body {
     top: 10vh;
     width: 30vw;
     height: 80vh;
-    border-radius: 3vw 0 0 3vw;
+    border-radius: 2vw 0 0 2vw;
     background-color: var(--color-light);
     color: var(--color-white);
     display: flex;
@@ -225,21 +227,135 @@ body {
     min-height: auto;
     background-color: var(--color-verylight);
     color: var(--color-dark);
-    border-radius: 8px;
+    border-radius: calc(2vw - 15px);
     flex-shrink: 0;
     padding: 15px;
     box-sizing: border-box;
 }
 
-#timeLine {
+.animatedOptionItem {
+    pointer-events: none;
+    opacity: 50%;
+}
+
+.timeline-left-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4vh;
+}
+
+.timeline-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.3vw;
+    font-size: 10px;
+    color: var(--color-white);
+    cursor: pointer;
+}
+
+.timeline-toggle-checkbox {
+    width: 1vw;
+    height: 1vw;
+    cursor: pointer;
+}
+
+.timeline-toggle-text {
+    line-height: 1;
+}
+
+#timeLineContainer {
     position: fixed;
     right: 0;
-    top: 90vh;
+    top: 90.5vh;
     width: 87vw;
-    height: 10vh;
-    border-radius: 3vw 0 0 0;
+    height: 9.5vh;
+    border-radius: 2vw 0 0 0;
     background-color: var(--color-dark);
     color: var(--color-white);
+}
+
+.timeline-container {
+    display: flex;
+    align-items: center;
+    gap: 1vw;
+    padding: 0 1vw;
+    box-sizing: border-box;
+}
+
+.timeline-input {
+    width: 50px;
+    height: 3vh;
+    font-size: 12px;
+    padding: 0.2vw;
+    text-align: center;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+}
+
+.timeline-input-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3vh;
+}
+
+.timeline-input-label {
+    font-size: 10px;
+    color: var(--color-white);
+    line-height: 1;
+}
+
+.timeline-play-button {
+    height: 3vh;
+    width: 70px;
+    padding: 0 0.8vw;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    background-color: var(--color-verylight);
+    color: var(--color-dark);
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.timeline-play-button:hover {
+    background-color: var(--color-light);
+}
+
+.timeline-track {
+    position: relative;
+    flex: 1;
+    height: 3vh;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.timeline-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: white;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.timeline-marker {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 5px;
+    border-radius: 2px;
+    background-color: red;
+    left: 0;
+    transform: translateX(-1px);
+    cursor: grab;
+}
+
+.timeline-marker-dragging {
+    cursor: grabbing;
 }
 
 
@@ -284,7 +400,7 @@ body {
 }
 
 .slider-value-box {
-    width: 3vw;
+    width: 3v;
     padding: 0.3vw;
 }
 
@@ -312,6 +428,13 @@ body {
     border-radius: 4px;
     border: 1px solid #ccc;
     box-sizing: border-box;
+}
+
+textarea.text-input {
+    resize: none;
+    overflow: hidden;
+    min-height: 2em;
+    font-family: 'Omnes', sans-serif;
 }
 
 .toggle-container {

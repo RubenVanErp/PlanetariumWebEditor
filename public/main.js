@@ -1,3 +1,3 @@
-import { Master } from './classes/masters/master.js';
+import { Master } from './classes/master.js';
 
 const master = new Master();

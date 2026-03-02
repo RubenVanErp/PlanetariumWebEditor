@@ -1,166 +1,13 @@
-export function createWorkspace(editor) {
-    const viewport = document.createElement('div');
-    viewport.id = 'viewport';
-    document.body.appendChild(viewport);
-}
-
-export function createSideBar(editor) {
-    const sideBar = document.createElement('div');
-    sideBar.id = 'sideBar';
-    document.body.appendChild(sideBar);
-
-    updateSideBar(editor)
-}
-
-export function createMenuBar(editor) {
-    const logo = document.createElement('div');
-    logo.id = 'logo';
-    document.body.appendChild(logo);
-
-
-    const menuBar = document.createElement('div');
-    menuBar.id = 'menuBar';
-    document.body.appendChild(menuBar);
-
-    const menuBarButtons = ["save", "load", "export", "visualiser"];
-
-    const buttonHandlers = {
-        save: () => {
-            if (!editor.currentPresentation) {
-                console.warn('No currentPresentation to save.');
-                return;
-            }
-            editor.currentPresentation.savePresentation();
-        },
-        load: () => console.log('Load clicked'),
-        export: () => console.log('Export clicked'),
-        test: () => console.log('Test clicked')
-    };
-
-    menuBarButtons.forEach((label) => {
-        const button = document.createElement('div');
-        button.className = 'menuBar-item majorButton';
-        const buttonText = label.charAt(0).toUpperCase() + label.slice(1);
-        button.textContent = buttonText;
-        button.setAttribute('data-text', buttonText);
-        button.onclick = buttonHandlers[label] || (() => {});
-        menuBar.appendChild(button);
-    });
-}
-
-export function createElementMenuBar(editor) {
-    const elementMenuBar = document.createElement('div');
-    elementMenuBar.id = 'elementMenuBar';
-    document.body.appendChild(elementMenuBar);
-
-    const menuBarButtons = ["upload", "copy element", "paste element"];
-
-    const buttonHandlers = {
-        upload: () => console.log('Upload clicked'),
-    };
-
-    menuBarButtons.forEach((label) => {
-        const button = document.createElement('div');
-        button.className = 'menuBar-item majorButton';
-        const buttonText = label.charAt(0).toUpperCase() + label.slice(1);
-        button.textContent = buttonText;
-        button.setAttribute('data-text', buttonText);
-        button.onclick = buttonHandlers[label] || (() => {});
-        elementMenuBar.appendChild(button);
-    });
-}
-
-export function createElementBar(editor) {
-    const elementBar = document.createElement('div');
-    elementBar.id = 'elementBar';
-    document.body.appendChild(elementBar);
-
-    updateElementBar(editor)
-}
-
-export function createEditingOptionBar(editor) {
-    const editingOptionBar = document.createElement('div');
-    editingOptionBar.id = 'editingOptionBar';
-    document.body.appendChild(editingOptionBar);
-}
-
-export function createTimeLine(editor) {
-    const timeLine = document.createElement('div');
-    timeLine.id = 'timeLine';
-    document.body.appendChild(timeLine);
-}
-
-export function updateOptions(e) {
-    var optionsBar = document.getElementById("editingOptionBar")
-    optionsBar.innerHTML = ''
-    const dict = {
-        "slider": addSlider,
-        "doubleSlider": addDoubleSlider,
-        "toggle": addToggle,
-        "textBox": addTextBox,
-        "numberBox": addNumberBox,
-        "dropdown": addDropdown
-    }
-    if (e) {
-        var options = e.getOptions()
-        options.forEach((option) => {
-            const func = dict[option.type];
-            var domElement = func(option.label, ...option.parameters, e)
-            if(domElement) {optionsBar.appendChild(domElement)};
-        })
-    }
-}
-
-export function updateSideBar(editor) {
-    const sideBar = document.getElementById("sideBar")
-    sideBar.innerHTML = '';
-    const sideBarItemOnClick = (i, item) => {
-        editor.setCurrentSlide(item.slide)
-    };
-
-    const n = editor?.currentPresentation?.slides?.length ?? 0;
-
-    for (let i = 0; i < n; i++) {
-        const item = document.createElement('div');
-        item.className = 'sideBar-item pressable';
-        if (i==0) {item.classList.add("selected")}
-        item.onclick = () => sideBarItemOnClick(i, item);
-        item.slide = editor.currentPresentation.slides[i]
-        item.id = item.slide.id
-        sideBar.appendChild(item);
-    }
-}
-
-
-export function updateElementBar(editor) {
-    const elementBar = document.getElementById("elementBar")
-    elementBar.innerHTML = '';
-    const elementBarItemOnClick = (i, item) => {
-        editor.setCurrentElement(item.element)
-    };
-
-    const n = editor?.currentSlide?.elements?.length ?? 0;
-
-    for (let i = 0; i < n; i++) {
-        const item = document.createElement('div');
-        item.className = 'elementBar-item pressable';
-        if (i==0) {item.classList.add("selected")}
-        item.onclick = () => elementBarItemOnClick(i, item);
-        item.element = editor.currentSlide.elements[i]
-        item.id = item.element.id
-        elementBar.appendChild(item);
-    }
-}
-
 export function addSlider(label, min = 0, max = 100, value = 50, element) {
-    const functionDict = {
-        "Rotation": [element.rotateElement.bind(element), element.rotation],
-        "Scale": [element.scaleElement.bind(element), element.scale],
-        "Opacity": [element.setOpacity.bind(element), element.opacity]
+    const parameterDict = {
+        "Rotation": "rotation",
+        "Scale": "scale",
+        "Opacity": "opacity"
     };
-    
-    const currentEditingFunc = functionDict[label][0];
-    const currentValue = functionDict[label][1];
+
+    const parameterKey = parameterDict[label];
+    const interval = parameterKey ? element[parameterKey]?.[0] : null;
+    const currentValue = interval?.startValue ?? value;
     
     const container = document.createElement('div');
     container.className = 'editingOptionBar-item';
@@ -179,11 +26,12 @@ export function addSlider(label, min = 0, max = 100, value = 50, element) {
     const valueBox = document.createElement('input');
     valueBox.type = 'number';
     valueBox.value = currentValue;
-    valueBox.style.width = '3vw';
+    valueBox.style.width = '2vw';
     valueBox.style.padding = '5px';
     
     const slider = document.createElement('input');
     slider.type = 'range';
+    slider.className = "slider"
     slider.min = min;
     slider.max = max;
     slider.value = currentValue;
@@ -192,7 +40,13 @@ export function addSlider(label, min = 0, max = 100, value = 50, element) {
     // Textbox is authority - when it changes, update slider
     valueBox.addEventListener('input', (e) => {
         slider.value = e.target.value;
-        currentEditingFunc(parseFloat(e.target.value));
+        const newValue = parseFloat(e.target.value);
+        if (interval) {
+            interval.startValue = newValue;
+            interval.endValue = newValue;
+        } else if (parameterKey) {
+            element[parameterKey] = newValue;
+        }
     });
     
     valueBox.addEventListener('blur', (e) => {
@@ -204,7 +58,13 @@ export function addSlider(label, min = 0, max = 100, value = 50, element) {
     // Slider changes update textbox
     slider.addEventListener('input', (e) => {
         valueBox.value = e.target.value;
-        currentEditingFunc(parseFloat(e.target.value));
+        const newValue = parseFloat(e.target.value);
+        if (interval) {
+            interval.startValue = newValue;
+            interval.endValue = newValue;
+        } else if (parameterKey) {
+            element[parameterKey] = newValue;
+        }
     });
 
     sliderContainer.appendChild(valueBox);
@@ -225,9 +85,9 @@ export function addDoubleSlider(label, minRange = [0, 0], maxRange = [100, 100],
     labelEl.style.display = 'block';
     labelEl.style.marginBottom = '5px';
     
-    // Get current position values
-    const currentPhi = element.position?.phi ?? value[0];
-    const currentTheta = element.position?.theta ?? value[1];
+    const interval = element.position?.[0] ?? null;
+    const currentPhi = interval?.startValue?.phi ?? value[0];
+    const currentTheta = interval?.startValue?.theta ?? value[1];
     
     // First slider (Phi)
     const phiContainer = document.createElement('div');
@@ -280,10 +140,16 @@ export function addDoubleSlider(label, minRange = [0, 0], maxRange = [100, 100],
     
     // Update function
     const updatePosition = () => {
-        element.moveElement({
+        const nextValue = {
             phi: parseFloat(phiValueBox.value),
             theta: parseFloat(thetaValueBox.value)
-        });
+        };
+        if (interval) {
+            interval.startValue = nextValue;
+            interval.endValue = nextValue;
+        } else {
+            element.moveElement(nextValue);
+        }
     };
     
     // Phi events
@@ -338,15 +204,15 @@ export function addDoubleSlider(label, minRange = [0, 0], maxRange = [100, 100],
     return container;
 }
 
-
 export function addToggle(label, checked = false, element) {
-    const functionDict = {
-        "Paused": [element.togglePause.bind(element), element.paused],
-        "Looping": [(val) => { element.looping = val; }, element.looping]
+    const parameterDict = {
+        "Paused": "paused",
+        "Looping": "looping"
     };
-    
-    const currentEditingFunc = functionDict[label]?.[0];
-    const currentValue = functionDict[label]?.[1] ?? checked;
+
+    const parameterKey = parameterDict[label];
+    const interval = parameterKey && Array.isArray(element[parameterKey]) ? element[parameterKey][0] : null;
+    const currentValue = interval?.startValue ?? (parameterKey ? element[parameterKey] : checked) ?? checked;
     
     const container = document.createElement('div');
     container.className = 'editingOptionBar-item';
@@ -364,12 +230,12 @@ export function addToggle(label, checked = false, element) {
     labelEl.className = 'toggle-label option-label';
     
     checkbox.addEventListener('change', (e) => {
-        if (currentEditingFunc) {
-            if (label === "Paused") {
-                currentEditingFunc();
-            } else {
-                currentEditingFunc(e.target.checked);
-            }
+        const nextValue = e.target.checked;
+        if (interval) {
+            interval.startValue = nextValue;
+            interval.endValue = nextValue;
+        } else if (parameterKey) {
+            element[parameterKey] = nextValue;
         }
     });
     
@@ -381,13 +247,14 @@ export function addToggle(label, checked = false, element) {
 }
 
 export function addTextBox(label, placeholder = '', value = '', element) {
-    const functionDict = {
-        "Media Path": [element.setMediaPath.bind(element), element.mediaPath],
-        "Content": [(val) => { element.content = val; }, element.content ?? value]
+    const parameterDict = {
+        "Media Path": "mediaPath",
+        "Content": "content"
     };
-    
-    const currentEditingFunc = functionDict[label]?.[0];
-    const currentValue = functionDict[label]?.[1] ?? value;
+
+    const parameterKey = parameterDict[label];
+    const interval = parameterKey && Array.isArray(element[parameterKey]) ? element[parameterKey][0] : null;
+    const currentValue = interval?.startValue ?? (parameterKey ? element[parameterKey] : value) ?? value;
     
     const container = document.createElement('div');
     container.className = 'editingOptionBar-item';
@@ -396,31 +263,46 @@ export function addTextBox(label, placeholder = '', value = '', element) {
     labelEl.textContent = label;
     labelEl.className = 'option-label';
     
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.placeholder = placeholder;
-    input.value = currentValue;
-    input.className = 'text-input';
+    const textarea = document.createElement('textarea');
+    textarea.placeholder = placeholder;
+    textarea.value = currentValue;
+    textarea.className = 'text-input';
+    textarea.rows = 1;
     
-    input.addEventListener('input', (e) => {
-        if (currentEditingFunc) {
-            currentEditingFunc(e.target.value);
+    // Auto-resize function
+    const autoResize = () => {
+        textarea.style.height = 'auto';
+        textarea.style.height = textarea.scrollHeight + 'px';
+    };
+    
+    textarea.addEventListener('input', (e) => {
+        autoResize();
+        const nextValue = e.target.value;
+        if (interval) {
+            interval.startValue = nextValue;
+            interval.endValue = nextValue;
+        } else if (parameterKey) {
+            element[parameterKey] = nextValue;
         }
     });
     
+    // Initial resize
+    setTimeout(autoResize, 0);
+    
     container.appendChild(labelEl);
-    container.appendChild(input);
+    container.appendChild(textarea);
     
     return container;
 }
 
 export function addNumberBox(label, min = -Infinity, max = Infinity, value = 0, element) {
-    const functionDict = {
-        "Layer": [element.setLayer.bind(element), element.layer]
+    const parameterDict = {
+        "Layer": "layer"
     };
-    
-    const currentEditingFunc = functionDict[label]?.[0];
-    const currentValue = functionDict[label]?.[1] ?? value;
+
+    const parameterKey = parameterDict[label];
+    const interval = parameterKey ? element[parameterKey]?.[0] : null;
+    const currentValue = interval?.startValue ?? (parameterKey ? element[parameterKey] : value) ?? value;
     
     const container = document.createElement('div');
     container.className = 'editingOptionBar-item';
@@ -437,8 +319,12 @@ export function addNumberBox(label, min = -Infinity, max = Infinity, value = 0, 
     input.className = 'number-input';
     
     input.addEventListener('input', (e) => {
-        if (currentEditingFunc) {
-            currentEditingFunc(parseInt(e.target.value) || currentValue);
+        const newValue = parseInt(e.target.value) || currentValue;
+        if (interval) {
+            interval.startValue = newValue;
+            interval.endValue = newValue;
+        } else if (parameterKey) {
+            element[parameterKey] = newValue;
         }
     });
     
@@ -447,8 +333,11 @@ export function addNumberBox(label, min = -Infinity, max = Infinity, value = 0, 
         if (min !== -Infinity) newValue = Math.max(min, newValue);
         if (max !== Infinity) newValue = Math.min(max, newValue);
         input.value = newValue;
-        if (currentEditingFunc) {
-            currentEditingFunc(newValue);
+        if (interval) {
+            interval.startValue = newValue;
+            interval.endValue = newValue;
+        } else if (parameterKey) {
+            element[parameterKey] = newValue;
         }
     });
     
@@ -459,12 +348,13 @@ export function addNumberBox(label, min = -Infinity, max = Infinity, value = 0, 
 }
 
 export function addDropdown(label, options = [], selectedValue = '', element) {
-    const functionDict = {
-        "Projection Type": [element.setProjection.bind(element), element.projection]
+    const parameterDict = {
+        "Projection Type": "projection"
     };
-    
-    const currentEditingFunc = functionDict[label]?.[0];
-    const currentValue = functionDict[label]?.[1] ?? selectedValue;
+
+    const parameterKey = parameterDict[label];
+    const interval = parameterKey && Array.isArray(element[parameterKey]) ? element[parameterKey][0] : null;
+    const currentValue = interval?.startValue ?? (parameterKey ? element[parameterKey] : selectedValue) ?? selectedValue;
     
     const container = document.createElement('div');
     container.className = 'editingOptionBar-item';
@@ -489,8 +379,12 @@ export function addDropdown(label, options = [], selectedValue = '', element) {
     
     // Update element when selection changes
     select.addEventListener('change', (e) => {
-        if (currentEditingFunc) {
-            currentEditingFunc(e.target.value);
+        const nextValue = e.target.value;
+        if (interval) {
+            interval.startValue = nextValue;
+            interval.endValue = nextValue;
+        } else if (parameterKey) {
+            element[parameterKey] = nextValue;
         }
     });
     
@@ -500,33 +394,36 @@ export function addDropdown(label, options = [], selectedValue = '', element) {
     return container;
 }
 
-export function updateHighlightedSlideAndElement(editor){
-    // Remove selected class from all items
-    const allSlideItems = document.querySelectorAll('.sideBar-item');
-    allSlideItems.forEach(item => {
-        item.classList.remove('selected');
-    });
-    
-    const allElementItems = document.querySelectorAll('.elementBar-item');
-    allElementItems.forEach(item => {
-        item.classList.remove('selected');
+export function addButton(label, functionName, element) {
+    const container = document.createElement('div');
+    container.className = 'editingOptionBar-item';
+
+    const labelEl = document.createElement('label');
+    labelEl.textContent = label;
+    labelEl.className = 'option-label';
+
+    const button = document.createElement('button');
+    button.textContent = label;
+    button.className = 'minorButton';
+
+    button.addEventListener('click', () => {
+        if (!element || !functionName) {
+            return;
+        }
+        if (typeof functionName === 'function') {
+            functionName.call(element);
+            return;
+        }
+        const normalizedName = String(functionName).trim().replace(/\(\)\s*$/, "");
+        const targetFunc = element[normalizedName];
+        if (typeof targetFunc === 'function') {
+            targetFunc.call(element, element);
+        }
     });
 
-    // Add selected class to current slide and element
-    var currentSlide = editor.currentSlide;
-    var currentElement = editor.currentElement;
+    container.appendChild(labelEl);
+    container.appendChild(button);
 
-    if (currentSlide) {
-        var slideInDom = document.getElementById(currentSlide.id);
-        if (slideInDom) {
-            slideInDom.classList.add('selected');
-        }
-    }
-    
-    if (currentElement) {
-        var elementInDom = document.getElementById(currentElement.id);
-        if (elementInDom) {
-            elementInDom.classList.add('selected');
-        }
-    }
+    return container;
 }
+

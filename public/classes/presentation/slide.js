@@ -1,9 +1,13 @@
 import { Element } from "./element.js";
 
 export class Slide {
-    constructor(id) {
+    constructor(id, parentPresentation) {
+        this.parentPresentation = parentPresentation
         this.elements = [];
         this.id = id
+        this.isAnimated = false;
+        this.paused = true;
+        this.animationDuration = 10;
     }
 
     addElement(e) {
@@ -15,6 +19,8 @@ export class Slide {
         if (index > -1) {
             this.elements.splice(index, 1); 
         }
+        this.parentPresentation.editor.setCurrentElement(null)
+        this.parentPresentation.editor.updateElementAndSlideBar() 
     }
 
     getElement(id) {

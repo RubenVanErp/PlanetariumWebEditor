@@ -265,7 +265,7 @@ class ImageTransformer {
                     return;
                 }
                 vec4 texColor = texture2D(uTexture, uv);
-                gl_FragColor = vec4(texColor.rgb, 0.9); //Example: set alpha to 0.5
+                gl_FragColor = vec4(texColor.rgb, texColor.a); //Example: set alpha to 0.5
             }
         `;
 

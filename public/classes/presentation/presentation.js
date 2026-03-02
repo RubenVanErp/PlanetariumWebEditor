@@ -1,7 +1,8 @@
 import { Slide } from "./slide.js";
 
 export class Presentation {
-    constructor(projectName = "planetariumPresentation") {
+    constructor(projectName = "planetariumPresentation", master = null) {
+        this.master = master
         this.projectName = projectName
         this.slides = [];
         this.addBlankSlide();
@@ -40,7 +41,8 @@ export class Presentation {
 
     addBlankSlide() {
         const uniqueId = `slide-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        this.slides.push(new Slide(uniqueId));
+        this.slides.push(new Slide(uniqueId, this));
+        this.master.editor.updateElementAndSlideBar()
     }
 
     removeSlide(slide) {
